@@ -1,0 +1,23 @@
+Today, we will discuss the development of Edamame, a load tester specifically designed for real-time collaboration apps. Our team consists of Albert, Ginny, Luke, and Rachel hailing from different parts of Canada and the US. We will cover several topics: defining load testing, real-time collaboration apps, the unique considerations of load testing for collaboration apps, existing solutions, and our solution.
+
+Load testing is the process of simulating user behavior at large volumes to measure how a system responds. It helps companies prepare for overwhelming traffic and ensures a great user experience. Load tests involve sending a large number of HTTP requests to mimic high volumes of traffic. However, load testing is more complex than simply sending requests and involves considerations such as scale, protocols, data collection, and visualization.
+
+Collaboration apps, like Slack, Coda, and Miro, facilitate real-time communication and have gained popularity with the rise of remote work. These apps utilize the WebSocket protocol to enable real-time updates, making load testing more challenging due to the fan-out pattern. Fan-out refers to the process of sending messages to multiple connected users. Load testers need to accurately simulate this pattern to assess system performance.
+
+Currently, load testing for collaboration apps is approached through managed cloud-based services or self-hosted DIY tools. Managed services handle complexities but may lack customization, data ownership, and can be expensive. DIY tools offer more flexibility but require a dedicated team for management. For those seeking a middle ground, self-hosted open-source solutions hosted on cloud platforms can provide both scalability and customizability.
+
+Edamame is an open-source self-hosted distributed load testing framework specifically tailored for collaboration apps. It allows load tests of up to 200,000 concurrent virtual users and supports both HTTP and WebSocket protocols. Edamame collects custom metrics, like WebSocket failed handshakes and abnormal closures, which are crucial for evaluating WebSocket load tests. It also provides near real-time data visualization using Grafana.
+
+While developing Edamame, we encountered three challenges. The first challenge was coordinating distributed load tests with over 100,000 virtual users. To address this, we employed Kubernetes and the k6 operator, which allowed us to synchronize tests across multiple machines efficiently. This enabled us to scale to hundreds of thousands of virtual users.
+
+The second challenge was processing over a million data points per second in real time. We explored various approaches, including writing raw data to a database and aggregating data on k6 runners. Ultimately, we opted for central aggregation using Statsite, a performance stats server. Statsite utilizes probabilistic data structures to estimate percentiles accurately, reducing the data points written to the database.
+
+The third challenge was extracting useful insights from both HTTP and WebSocket protocols. We extended the k6 load testing tool to include additional metrics necessary for evaluating WebSocket load tests, such as abnormal closures and failed handshakes. These metrics were invaluable in assessing WebSocket performance.
+
+In the future, we anticipate improving Edamame's scalability beyond 200,000 virtual users by optimizing the data pipeline and exploring alternative approaches, such as sharding. Additionally, we aim to further enhance data visualization and offer advanced features like CI/CD integration and scheduled tests.
+
+Our collaboration during the development and deployment of Edamame primarily relied on GitHub for project management, issue tracking, and version control. This allowed us to collaborate effectively, ensuring everyone had access to the latest code and could contribute to the project.
+
+As for other messaging protocols beyond WebSockets, our focus was specifically on collaboration apps that heavily utilize WebSockets. While we did consider other protocols, such as video streaming, the scope of our project revolved around load testing for collaboration apps with WebSockets as the primary communication protocol.
+
+To summarize, Edamame is a load testing framework designed for real-time collaboration apps. It provides scalable and customizable load testing capabilities, supporting both HTTP and WebSocket protocols. It addresses the challenges of coordinating distributed load tests, processing a large volume of data, and extracting meaningful insights. In the future, we aim to further enhance Edamame's scalability, data visualization, and introduce advanced features.

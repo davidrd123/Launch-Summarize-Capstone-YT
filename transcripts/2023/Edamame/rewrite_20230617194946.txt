@@ -1,0 +1,13 @@
+Thank you everyone for joining us today. In this video, we will discuss the development of our load testing tool, Edamame, for real-time collaboration apps. We will cover the problem we aimed to solve, the considerations specific to collaboration apps, existing solutions, and our solution with Edamame.
+
+We start by defining load testing, which involves simulating user behavior on an application at large volumes to measure system response. Load tests are crucial for ensuring a good user experience and identifying performance bottlenecks. Real-time collaboration apps like Slack, Coda, and Miro are becoming more popular, and we chose to focus on load testing these applications due to their unique characteristics.
+
+Collaboration apps use protocols like websockets to enable real-time communication. This adds complexity to load testing as it requires simulating both HTTP and websocket traffic. We discuss the scale of load tests, the protocols involved, and the collection and visualization of meaningful metrics. We emphasize the importance of choosing the appropriate metrics and using percentile calculation instead of averaging.
+
+We then examine existing solutions for load testing, which fall into two categories: managed cloud-based services and self-hosted DIY tools. Managed services simplify the process but may lack customization and control, while DIY tools offer more flexibility but require manual setup and maintenance. Edamame falls in between these categories, being an open-source self-hosted distributed load testing framework designed specifically for collaboration apps.
+
+In Part B, we outline how Edamame works and the challenges we faced during development. Coordinating distributed load tests of over 100K virtual users was a challenge, which we solved by using Docker containers running on AWS EC2 instances and orchestrating them with Kubernetes. Processing over a million data points per second in real time was achieved by leveraging statsite, a performance stats D server, to aggregate and estimate metrics with a probabilistic data structure. We also extended the k6 load testing tool to gather custom metrics for both HTTP and websockets. Finally, we visualized the data using Grafana to provide near real-time insights.
+
+While Edamame has its limitations, such as the maximum of 200K virtual users and lack of advanced features like CI/CD integration and scheduled tests, it provides a competitive solution for self-hosted load testing of collaboration apps.
+
+We invite any questions from the audience and conclude the video. Thank you for your time and attention.
