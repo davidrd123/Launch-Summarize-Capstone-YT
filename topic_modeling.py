@@ -84,7 +84,7 @@ exclude = set(string.punctuation)
 lemma = WordNetLemmatizer()
 
 all_project_names = [name.lower() for name in list(list_of_transcripts.keys())]
-additional_stopwords = ["like", "one", "user", "data", "application", "service", "also", ]
+additional_stopwords = ["like", "one", "user", "data", "application", "service", "also"]
 
 # Add project names to the stop words
 stop.update(all_project_names)
@@ -109,7 +109,7 @@ dictionary = corpora.Dictionary(texts)
 corpus_bow = [dictionary.doc2bow(text) for text in texts]
 
 # Train the LDA model
-lda_model = models.LdaModel(corpus_bow, num_topics=8, id2word=dictionary, passes=15, alpha=ALPHA, eta=ETA, decay=DECAY)
+lda_model = models.LdaModel(corpus_bow, num_topics=8, id2word=dictionary, passes=60, alpha=ALPHA, eta=ETA, decay=DECAY)
 
 # Print the topics
 topics = lda_model.print_topics(num_words=8)
