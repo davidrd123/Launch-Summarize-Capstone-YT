@@ -1,0 +1,75 @@
+Thank you for joining us today and welcome to our presentation of Cascade, an open-source containerized application deployment solution. My name is Rona, and I'm here with my colleagues Ewan, Natalie, and Ann. We are excited to introduce you to the application we have worked on for the past few months as a fully remote team across three different time zones.
+
+Before we start, let's provide some background knowledge on the challenges related to deploying software. When deploying software applications, one of the key challenges is the reliance on specific environments for them to run. These environments can include development, staging, and production, among others. Setting up and configuring each environment manually for every application is time-consuming and error-prone, resulting in longer deployment cycles.
+
+To illustrate the struggle of deploying software across different environments, let's refer to a quote from the creator of Docker, Solomon Hykes. He mentions how testing might be done on Python 2.7, but the application will run on Python 3 in production, leading to unexpected issues. Similarly, relying on different versions of libraries or different operating systems can cause compatibility issues. To overcome these challenges, developers needed a way to package their application code along with its dependencies, ensuring consistent behavior across platforms.
+
+This is where containers come in. Containers are standardized software packages that contain all the necessary elements to run an application, regardless of the underlying environment. By using containers, developers can deploy applications across multiple operating systems consistently, and scale horizontally when needed. Each container is an isolated unit, independent of others, and the deployment process is faster since the container is not dependent on the entire runtime environment.
+
+However, the challenges don't end with containerization. Once the application is packaged into a container and ready to run in any environment, the next challenge is the deployment and management of these containers. What if a container fails in the middle of the night? How does it get restarted? What if there are multiple containers? Container orchestration is the answer to these challenges.
+
+Container orchestration automates various tasks in the container lifecycle, such as provisioning, networking configuration, scheduling, and resource allocation. There are several container orchestration solutions available, including open-source Kubernetes and Amazon Elastic Container Service (ECS). These orchestration services help manage the complexity of running containers on the cloud, allowing developers to deploy, scale, and secure containers with minimal effort.
+
+While container orchestration services like ECS attempt to mitigate failures automatically, developers still need insight into the system to identify and fix issues. Observability is the idea that applications and hardware emit telemetry data, including logs, metrics, and traces, to pinpoint where problems originate. Observability tools, such as the OpenTelemetry project from the Cloud Native Computing Foundation, aim to standardize collecting and transmitting telemetry data for analysis.
+
+Now that we have discussed containerization and observability, let's dive into the infrastructure required to deploy containerized applications on the cloud, using AWS as an example. AWS provides a Virtual Private Cloud (VPC), which is a logically isolated section of the cloud where applications run securely. High availability is achieved by implementing redundancy across multiple availability zones within the VPC. Each availability zone contains subnets that provide IP addresses, allowing for outbound traffic to the internet.
+
+So far, we have discussed the challenges of deploying software, the benefits of containerization, container orchestration, observability, and the necessary infrastructure. Now, Ewan will explain the current solutions available to address these challenges.
+
+There are different approaches to deploying containerized applications. One option is to use the AWS Management Console, which provides comprehensive tools for deploying applications into a cloud network. However, navigating through different interfaces for each service can be tedious and time-consuming. Additionally, the configuration process can be error-prone, and reproducing the infrastructure setup becomes difficult without a record of the configuration.
+
+Another approach is Infrastructure as Code (IaC), which allows users to automate infrastructure setup by writing scripts. Terraform is an example of an IaC tool that simplifies the process by describing the infrastructure in a configuration file. While IaC tools automate infrastructure creation, learning and implementing them can be time-consuming.
+
+AWS Copilot is an opinionated CLI tool for ECS that simplifies deployment by using AWS CloudFormation. However, none of the existing solutions automate both deployment and observability.
+
+This brings us to Cascade, our open-source containerized application deployment solution. Cascade aims to automate the deployment process and provide built-in observability. It offers a graphical user interface (GUI) where users can easily deploy, view logs and traces, and destroy their containerized applications. Cascade uses Terraform as its infrastructure-as-code tool, providing flexibility and support for new features.
+
+To deploy with Cascade, you first need to install the Cascade agent and require it in your application code. Then, you configure your AWS CLI credentials. Once your application is containerized and instrumented, you can use the Cascade GUI to set up your deployment. The GUI guides you through a three-step process: creating an application, providing credentials, and adding containerized applications to deploy. Cascade generates Terraform config files for each container, including a collector container for telemetry data, and deploys them automatically. The deployment progress is displayed on the GUI, and you can view logs and traces directly from the interface.
+
+Cascade's architecture consists of three main components: the GUI, the Cascade agent for instrumentation, and the backend. The GUI provides an intuitive interface for users to manage their deployments. The agent enables distributed tracing by instrumenting applications, while the backend handles the generation of Terraform config files and the deployment process.
+
+In summary, Cascade aims to simplify the deployment of containerized applications by providing an easy-to-use GUI, automation through Terraform, and built-in observability. It is designed for users who want to deploy containerized applications on AWS ECS Fargate and gain insights into their application's logs and traces. Moving forward, Cascade can continue to improve by incorporating user feedback and expanding its capabilities.
+
+Thank you for your attention, and now we'll be happy to answer any questions during the Q&A session. In the third step, you'll need to add information about the containerized applications you want to deploy. This includes providing a container name, the image link, the port, and any necessary environment variables. These containers will be added to the generated Terraform JSON config files. Each container will be deployed alongside a collector container, which will collect and export the applications' telemetry data to X-ray and CloudWatch.
+
+Once you see that your application container has been added, it means that the backend has generated the Terraform config files and you're ready to deploy. Clicking "Deploy Stack" will trigger the deployment process, and all AWS resources will be created for you. The backend server will send messages to the front end to indicate the creation progress of each resource. Each AWS resource will be checked off in the stacks section when it is done, and the deployment status will update to "Deployed" once all resources have finished being created.
+
+After the deployment process is complete, you'll be able to click "Visit Site" to be taken to your deployed application. You can also view logs and traces emitted from your application via the "View Cloud Logs" and "View X-ray Traces" buttons, which will direct you to the AWS console.
+
+To see the generated JSON config files, you can either view them directly on Cascade or visit your S3 bucket and download the files from there. These files contain the infrastructure that Cascade builds and can be used as a starting point.
+
+Destroying the resources is just as easy as deploying them. With a click of a button, the teardown process begins, and once it finishes, the only thing remaining on your AWS account will be the S3 bucket.
+
+Now, let's discuss the design decisions and architecture that made all of this possible. Our architecture starts with the graphical user interface (GUI) which provides an intuitive central place for users to prepare, deploy, view, and destroy their containerized applications. The dashboard of the GUI allows users to view each step of the deployment process in one view, eliminating the need to visit various interfaces on AWS.
+
+The next component is the Cascade agent, which is an npm package used to instrument users' applications for distributed tracing. It is compatible with AWS Distro for OpenTelemetry (ADOT) and allows users to export their telemetry data to various backends.
+
+The Cascade backend is responsible for creating a central storage for users and for building and destroying AWS resources using Terraform CDK. All user information is stored within their own AWS account in an S3 bucket. This ensures the security of user data.
+
+When deploying an application to ECS with Cascade, a new VPC component is created for the user in their preferred region. Two availability zones are set up to provide redundancy for high availability. The user's application is hosted on ECS with Fargate, and an application load balancer is placed between the application instances and the public internet.
+
+The Cascade backend automates the setup of ECS on Fargate by generating the task definition based on the user's provided container information. Cascade creates a task definition, service, and cluster for the user. The ECS service is configured to be placed behind the load balancer, and the ECS cluster is linked to the networking pieces, including the VPC, for a consistent environment.
+
+Without Cascade, deploying a containerized application on ECS requires the user to manage several aspects. They need to provide their containerized application, create a task definition, deploy and manage an ECS agent, set up and connect the network infrastructure, and set up IAM policies for hosting their application.
+
+By automating these processes, Cascade removes the underlying complexity and management burden from the user and leverages ECS as an underlying container orchestration tool. This allows AWS to manage the ECS control plane and foundation services, while Cascade focuses on providing a user-friendly interface.
+
+To add observability to containerized applications, Cascade supports AWS Distro for OpenTelemetry (ADOT). This allows users to export traces to various backends and provides the option to add metrics in the future. Cascade also includes a Cascade agent, which is a lightweight package that allows users to instrument their applications for distributed tracing.
+
+The frontend and backend of Cascade communicate in real-time to provide users with instant feedback on the deployment process. Instead of resource-intensive methods like polling or webhooks, Cascade utilizes server-sent events to maintain a connection between the client and server. The server sends text data to the client as it is generated, allowing real-time updates on the GUI.
+
+While Cascade offers a quick and streamlined deployment process for containerized applications, there are various improvements that could be implemented in the future. These include adding support for users' existing VPC and subnets, allowing users to upload custom Terraform config files, and providing an interactive infrastructure map on the Cascade dashboard.
+
+Overall, Cascade aims to simplify the deployment of containerized applications with observability. The architecture and design decisions behind Cascade provide users with a user-friendly GUI, automated backend processes, and real-time feedback on the deployment progress. In this coding Capstone project video, we discussed a variation of the sidecar approach where a service sidecar is used instead of a collector sidecar within the same task definition. The benefit of using it within the task definition is that it allows for more metadata from AWS Services. However, this approach loses metadata when the sidecar is in the service Sidecar. If the sidecar was running in a different service, we would have had to configure service discovery for the applications to communicate with each other.
+
+One of the most enjoyable challenges we faced during development was working on the API part and connecting the terraform cdk to the front end. This challenge brought the team closer together as we had to discuss our needs, the functionality we wanted from the API, and the information gaps between the terraform cdk and the front end. We had to find a way to bridge this gap, which led us to create a middleware solution. It was a challenging and fun experience overall.
+
+For me, the most interesting part of this project was delving into AWS. It was my first hands-on experience with AWS, and I initially felt intimidated by it. It was like walking into Home Depot and knowing you can buy a nail, but can you build a house? It was as intimidating as it seemed, but I appreciated the process and the opportunity to understand how things work in AWS.
+
+Another question similar to the previous one was, "What did you enjoy most?" In my opinion, the most enjoyable part was seeing the front end come together and work. Pressing the deploy button and witnessing all the spinning wheels signify progress was a great feeling. Finally logging into my AWS account and seeing the project deployed successfully was a rewarding experience.
+
+I would also like to add that it was incredibly satisfying to start with a small Docker image and gradually build it up and see it work in different environments. It was fascinating to witness each component come together and perform its role effectively.
+
+Now let's discuss the origin of the project's name, "Cascade." Originally, our focus was on traces, and we came across a graph known as a waterfall graph for each of the spans. This graph resembled a cascade, which inspired us to name the project Cascade. Although the project eventually centered around deployment and the utilization of Stacks, which are templates for each AWS resource deployment, we decided to keep the name.
+
+Lastly, we want to express our gratitude to everyone who watched the video and attended our session. Thank you for your support and interest in our project.

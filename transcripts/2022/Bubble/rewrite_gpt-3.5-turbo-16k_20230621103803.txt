@@ -1,0 +1,119 @@
+Welcome, everyone! Thank you for joining us. My name is Jessica, and I'm here with my colleagues Julia, Andrew, and Missy. Today, we will present Bubble, an automated open-source solution for deploying dynamic front-end preview apps. We will start with a brief overview of the history of web development, providing context for the type of apps Bubble supports. Then, we'll discuss the problem Bubble solves and give an example of an organization that may encounter this problem. After that, we'll explain what preview apps are, look at existing solutions in the preview app space, introduce Bubble's features, and provide a brief demo on how to use it. We'll also delve into the design decisions and trade-offs we made while building Bubble. Lastly, we'll discuss the challenges we faced during implementation and how we plan to expand and improve Bubble in the future.
+
+To understand Bubble's use case, let's first familiarize ourselves with the web development architecture. A typical Bubble user's application would be built with either server-side rendering (SSR) or static site generation (SSG). In SSR, when a client requests a page from a website, the server fetches the necessary data from the database, generates the HTML components, and sends back the fully generated HTML files to the client. With SSG, HTML pages are pre-built before a user makes a request for them. The pre-built HTML and other assets are cached in a content delivery network (CDN) which quickly delivers content from a location close to the client at request time.
+
+Both SSR and SSG have their own benefits and use cases. SSR is useful for apps that value search engine optimization (SEO), as the HTML sent back to the client is fully formed for web crawlers to parse and index. SSR also allows dynamic data retrieval without making public API calls, making it suitable for apps that use secret information. On the other hand, SSG is ideal for sites that require fast page loads, as the pre-built HTML is quickly served by a CDN. SSG is not well-suited for frequent changes, as a build and deployment process is required each time a page's content needs updating. SSG is also beneficial for scaling as CDNs can handle increased traffic.
+
+In the past, applications could be categorized as either using SSR or SSG. However, modern web development frameworks like Next.js, Gatsby, and Vue have started blurring the lines between static and dynamic applications, aiming to bring flexibility and optimize user interactions. For content-rich apps that require frequent dynamic data retrieval for select pages, a hybrid approach of SSR and SSG is suitable. An example of this is e-commerce applications.
+
+Let's consider a hypothetical company named Giraffe to illustrate Bubble's use case. Giraffe is an e-commerce application that uses Next.js for their online storefront. They employ a hybrid approach, using both SSR and SSG. For instance, their product categories page is generated through SSG, while product recommendation pages, unique to each user, are generated with SSR. Giraffe has been expanding their organization and adding new features to their website. However, they have encountered bottlenecks in their development process. Collaboration between multiple developers and other departments has become time-consuming, leading to delays and repetitive back-and-forth for even simple UI changes.
+
+Previously, Giraffe used manual approaches like sending screenshots or screen sharing to share progress. Occasionally, non-technical stakeholders would run the code on their local machines to review changes. However, with a larger team and more stakeholders who need to approve changes, this process became impractical. To address this, Giraffe introduced a shared staging environment, which mimics the production environment. Non-technical stakeholders could examine changes without building and running the application themselves. However, as multiple teams added changes to this shared environment, bugs emerged due to conflicts between different code updates. Releases became less frequent and more bloated, making rollbacks challenging.
+
+To overcome these challenges, Giraffe switched to a queuing system, allowing only one development team at a time to use the shared staging environment. While this reduced bugs and conflicts, it created a new set of problems. Developers now had to wait for the environment to be freed up, leading to wasted time and longer feedback loops. Deploying unsafe code also became a higher risk, as developers rushed to deploy others' work to free up the environment for their own changes.
+
+To address these issues, Giraffe started exploring the use of preview apps. Preview apps are lightweight, fully functional versions of an application that can be easily built and deployed. They can be quickly torn down as well. Using preview apps, Giraffe could deploy multiple versions of their site in isolation, allowing stakeholders to provide feedback on UI/UX changes more efficiently. A preview app would be built and deployed automatically whenever a new feature was ready to be previewed. Relevant stakeholders would access the preview app through a unique URL and provide feedback. Developers could then make revisions based on the feedback and deploy a new preview app with its own distinct URL. This iterative feedback loop using preview apps would continue until all stakeholders were satisfied with the feature. Once the feature was ready, it would proceed to the next step in the development pipeline.
+
+Preview apps offer several advantages. They allow each feature to be reviewed in isolation, avoiding conflicts with other changes. They also enable faster feedback from stakeholders, resulting in a more efficient development process. However, preview apps may not be suitable for testing how multiple changes integrate with each other, and there are costs associated with additional infrastructure and managing multiple URLs.
+
+Existing solutions for preview apps include a DIY approach or using third-party preview app services. Building their own system would give Giraffe full control but would require significant time and effort. Third-party services, on the other hand, come with usage fees and potential concerns about sharing code and data externally. The choice depends on the team's specific needs and considerations.
+
+As a hybrid approach of SSR and SSG requires both an application server and a CDN, a preview app architecture must include both components. This adds complexity to the implementation. Given Giraffe's use of SSR and SSG, they need a preview app provider that can handle this complexity for fully functional preview apps.
+
+In conclusion, preview apps can significantly improve the development workflow for front-end features. They allow for faster feedback loops, reducing bugs and improving collaboration between developers and non-technical stakeholders. However, the choice of a preview app solution depends on the team's specific requirements and considerations. In the next sections, we will further explore Bubble's features, explain how we built it, and discuss the challenges we faced during implementation. We will also share our plans for expanding and improving Bubble in the future. 1. Preview apps, or prevaps, automatically tear down apps.
+2. They help reduce issues when stakeholders use a shared staging environment.
+3. Each new feature can be reviewed in isolation, avoiding code conflicts.
+4. Developers can deploy preview apps frequently and receive fast feedback, improving development efficiency.
+5. However, prevaps may not be suitable for testing how multiple changes integrate.
+6. They also come with additional costs and the need to manage multiple links.
+7. Depending on the chosen solution, there may be additional costs or labor involved.
+8. As web development evolves, preview apps require support for both SSR and SSG approaches.
+9. Giraffe's site utilizes both SSR and SSG, so a suitable preview app provider is needed.
+10. The DIY approach allows customization but is time-consuming and complex.
+11. Giraffe may consider existing options for preview apps instead.
+12. Option 1: Preview apps as a feature, included in a hosting platform.
+13. Option 2: Preview apps as a service, standalone options with more setup and configuration.
+14. Currently, only GitLab offers an open-source preview app solution but requires hosting code on their platform.
+15. Bubble provides an alternative solution with different trade-offs.
+16. Bubble combines benefits of preview apps as a feature and a DIY approach.
+17. It offers easy setup and control while supporting fewer features.
+18. Bubble automatically deploys apps on pull requests and subsequent commits.
+19. Each deployment generates a shareable URL posted on GitHub.
+20. Preview apps are torn down automatically when the associated branch is merged or closed.
+21. Bubble provides a visual dashboard and a CLI for managing preview apps.
+22. To integrate Bubble, users need an AWS account, a Next.js GitHub repository, and a GitHub token.
+23. Executing "bubble init" initializes necessary files and sets up authorization and metadata storage.
+24. Opening a pull request triggers the deployment of a preview app with a unique URL.
+25. Additional commits trigger the deployment of separate preview apps.
+26. Preview apps remain live until the pull request is closed or manually destroyed.
+27. The dashboard allows users to manage and destroy preview apps easily.
+28. Bubble's architecture consists of three key components: local user interface, GitHub, and AWS.
+29. The local user interface includes an npm package for the CLI and a locally run web application for the dashboard.
+30. GitHub actions automate the build and deployment process for preview apps.
+31. Bubble leverages AWS services to deploy the infrastructure for preview apps.
+32. Each preview app consists of SSR logic, API routes, and static assets deployed to various AWS services.
+33. Bubble uses IAM users to execute AWS commands with limited permissions.
+34. DynamoDB is used to store metadata related to preview apps.
+35. GitHub actions and runners proved to be suitable for the build process.
+36. GitHub actions simplify integration and avoid the need for an external build server.
+37. GitHub actions have some limitations, such as constrained development and limited access to outputs.
+38. However, the benefits, including cost-effectiveness and simplicity, outweigh the drawbacks.
+39. To build and deploy preview apps, Bubble considered containerization and serverless functions.
+40. Containerization would require managing multiple infrastructure nodes and longer build times.
+41. Serverless functions offer a compelling option for deploying server-side logic.
+42. Serverless functions are cost-effective and only charge for actual server usage.
+43. Serverless functions abstract away system dependencies and provide scalability.
+44. Bubble chose serverless functions to deploy server-side logic separately from static assets.
+45. Now that we've discussed the architectural decisions, let's move on to the trade-offs.
+46. Preview apps as containers would incur costs even during periods of inactivity.
+47. Containers also have longer build times due to packaging the entire application.
+48. Serverless functions, while named serverless, still run on servers but with abstracted resource provisioning.
+49. Serverless functions charge only for the capacity used during execution.
+50. Bubble's choice of serverless functions provides cost efficiency and scalability for preview apps.
+51. Now, let's continue examining the architectural components of GitHub and AWS in more detail. Using GitHub Actions has some challenges, particularly with limited access to outputs and environmental artifacts. However, the benefits outweigh these drawbacks for Bubble's needs. The free tier of GitHub Actions provides sufficient compute power for building and deploying preview apps, making it cost-effective for midsize teams. Relying on GitHub runners simplifies the build process and abstracts away complexity. Additionally, deploying and tearing down preview apps in parallel is more efficient. 
+
+To determine where the builds will take place and how to build the preview apps, the team considered different options. One option was to deploy the server-side logic and static assets together in a container. Containers encapsulate the application code and runtime elements in one package. While this simplifies deployment, it incurs constant costs and has longer build times due to the need to package the virtualized OS and runtime. 
+
+An alternative approach was to separate the server-side logic and static assets into separate services. Serverless functions emerged as the most compelling option for deploying server-side logic. These functions run on servers but abstract away resource provisioning, resulting in no ongoing expenses. They are also fast to deploy, usually within milliseconds. However, serverless functions introduce architectural complexity and can have longer loading times due to cold starts.
+
+After considering various open-source frameworks, the team evaluated Terraform, Fab, and Serverless Framework for automating deployment. Terraform is an infrastructure as code framework that manages the lifecycle of cloud components. While promising, it has lengthy deployment times and encountered failures during testing. Fab, another option, allows users to deploy front-end applications with separate platforms for serving static and dynamic content. Though faster than Terraform, Fab has not been actively maintained. Serverless Framework, on the other hand, deploys apps using AWS services and has continued support. It offers relatively fast deployment times and a simplified architecture, making it the preferred choice for Bubble's needs.
+
+During implementation, the team faced two challenges. One challenge arose when deleting preview apps. The team used GitHub action workflow files to trigger the deletion process. However, deleting Lambdas presented issues as they required additional time before being deleted. Implementing polling or a cron job was considered, but it would add complexity and system-specific configurations. In the end, the team introduced an additional command, "bubble teardown", which users can run to remove remaining Lambdas. This change involved adding a new table to the DynamoDB database to store Lambda metadata.
+
+Another challenge involved capturing build logs from the preview apps and integrating them into the dashboard. Initially, the plan was to parse and display the logs on the dashboard, but this proved difficult due to the opaque runtime environment of GitHub Actions. The team had to implement a separate workflow and cache the run ID to access the logs. However, parsing the logs encountered issues with GitHub's metadata and character sequences, leading to string parsing errors. Instead of processing the logs themselves, the team decided to provide a link on the dashboard to the GitHub workflow run where users can download the logs.
+
+Looking towards the future, Bubble plans to expand support for other front-end frameworks, such as Gatsby and Vue. They also aim to make the dashboard more distributed, allowing developers from the same team to manage and view their preview apps in one place. Additionally, they are interested in exploring integration with other cloud providers, such as Cloudflare and Google Cloud.
+
+In summary, Bubble's implementation of GitHub Actions for building and deploying preview apps had its challenges, but the benefits outweighed the drawbacks. They opted for serverless functions instead of containers, considering factors such as cost, deployment speed, and architectural complexity. The team evaluated various open-source frameworks and chose Serverless Framework for its reliability and simplified architecture. They encountered challenges with deleting preview apps and capturing build logs but found effective solutions. Looking ahead, Bubble has plans to expand framework support, enhance the dashboard, and explore integration with other cloud providers. We decided to change our approach to handling logs in our coding Capstone project. Originally, we were manually going through thousands of lines of logs, trying to remove unnecessary characters without losing important log data. However, as we encountered more edge cases, the complexity of this feature increased exponentially. In addition, storing all these logs would incur significant costs. Thus, we made the decision to take a different approach.
+
+Instead of processing the logs ourselves and making them available in full on the bubble dashboard, we decided to add a link on the dashboard for each preview app's build log. When the user follows this link, they are directed to the GitHub workflow run where they have the option to download the logs for that specific preview app. Although this requires the user to click a few more times, it greatly reduces the complexity of the bubble platform and the storage needs and costs of the user's AWS account.
+
+Now that we have a good understanding of bubble and its design decisions, let's briefly discuss some features we plan to add in the future. Currently, bubble only supports applications built with the Next.js framework. However, we aim to expand our support to include other front-end frameworks such as Gatsby and Vue. This will give developers more flexibility in choosing their preferred framework.
+
+Another limitation of our dashboard feature is that it can only be viewed by the developer who installed bubble. In the future, we want to make the dashboard more distributed so that developers from the same team can share one dashboard to manage and view their preview apps in one place. This will enhance collaboration and streamline the app development process.
+
+Furthermore, our preview apps are currently deployed only on AWS infrastructure. However, we are interested in exploring options to integrate our solution with alternative cloud providers such as Cloudflare and Google Cloud. This will give users more choices and allow them to deploy their apps on the cloud provider that best suits their needs.
+
+Thank you all for taking the time to listen to our presentation. We appreciate your support and enthusiasm for our project. Now, we are open to answering any questions you may have.
+
+Question 1: Carl asks about the CLI feature and if we used a framework like OakCLI. 
+
+We did not use any frameworks, including OakCLI. One of the challenges we faced was deciding between using GitHub Actions or programming in JavaScript. Our CLI is an npm package consisting of various commands. For some commands, we wrote the logic in JavaScript, while for others, we executed workflow files using GitHub Actions. Managing the environments between these two approaches was challenging, as we had to work within the constraints of GitHub.
+
+Question 2: Audrey's question is about which part of building Bubble we found the most interesting or exciting.
+
+For all of us, working together as a technical team was an exciting aspect of the project. Collaborating and coordinating tasks, using tools like Slack and GitHub issues, brought a sense of fulfillment. It was fulfilling to see all the pieces of the project gradually fitting together.
+
+Question 3: Arthur appreciates the idea of storing metadata in a table and asks how we arrived at this solution and if we have any future ideas for the table.
+
+The metadata tables were primarily used to store information related to each preview app, enabling efficient deletion. Initially, we considered expanding the dashboard and using tables to store user-related data for wider distribution. However, we realized that users might not want to store sensitive credentials in a third-party database. Despite this, storing user-related data in the future remains a possibility.
+
+Question 4: Max asks about the process of deploying serverless functions and how we determined which functions to deploy.
+
+Fortunately, we did not have to parse the Next.js files to determine which functions to deploy. The Serverless framework we chose automatically distinguishes between server-side logic and CDN-cached content, simplifying the deployment process. Next.js also has a serverless mode that separates server-side logic from statically generated pages. This automation eliminated the need for manual parsing and saved time.
+
+Question 5: The final question by an audience member focuses on the most challenging part of working with AWS.
+
+There were a few challenging aspects of working with AWS. Firstly, their documentation was not always comprehensive, making it difficult to find answers. Secondly, despite AWS being a large organization, some issues didn't receive timely attention or solutions. For example, the difficulty in deleting lambdas sparked surprise and frustration. Lastly, we had to consider the security of sensitive information, such as AWS and GitHub credentials, and how to securely store and access them.
+
+In conclusion, we want to express our appreciation for your attendance and engagement during our presentation. Creating and presenting this Capstone project has been an enjoyable experience for all of us. We have grown as a team and have gained valuable technical and collaborative skills. Thank you once again for your support. The most challenging part of working with AWS, in my opinion, was the documentation. It was not as good as expected. Whenever we had questions, the answers were scattered throughout different web pages, making it difficult to find the information we needed. Another challenge was that despite AWS being a large organization, some of their products had noticeable flaws. One example is the issue we encountered with Lambda. Many people had the same problem, and it seemed like an obvious fix, yet AWS did not address it. We were surprised by this. In fact, I found instances where individuals had to call an AWS representative to delete their Lambdas for them. It made us question whether AWS truly provides the services they claim to, or if they work differently than expected. Of course, we acknowledge that there may be underlying complexities that we are not fully aware of. We would like to express our gratitude to everyone who attended and supported our presentation. It was a pleasure to create and share it with all of you.

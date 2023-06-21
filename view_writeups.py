@@ -8,8 +8,8 @@ import streamlit as st
 
 ROOT_DIR = os.getcwd()
 
-print(f'ROOT_DIR: {ROOT_DIR}');
-print(f'os.listdir(ROOT_DIR): {os.listdir(ROOT_DIR)}');
+# print(f'ROOT_DIR: {ROOT_DIR}');
+# print(f'os.listdir(ROOT_DIR): {os.listdir(ROOT_DIR)}');
 
 st.title("SummarizeYT")
 

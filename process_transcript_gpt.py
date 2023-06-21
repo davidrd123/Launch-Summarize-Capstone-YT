@@ -99,7 +99,7 @@ def process_transcript_in_chunks(transcript, chunk_size, overlap, model="gpt-3.5
 def get_completion(text, model="gpt-3.5-turbo-16k", rewrite=False):
 	print(f"Getting completion for: (rewrite = {rewrite})| {text[:100]}")
 
-	user_message = REWRITE_USER_MESSAGE + text if rewrite else f"This is a transcript of a coding Capstone project video. Please analyze it and provide a detailed explanation as a well-structured markdown document, including an ELI5 summary and a list of the specific tools used. The transcript is: {text}"
+	user_message = REWRITE_USER_MESSAGE + text if rewrite else f"This is a transcript of a coding Capstone project video. Please analyze it and provide a detailed explanation of the capstone project as a well-structured markdown document, including an ELI5 summary, and a list of the specific tools used. The transcript is: {text}"
 	system_message = REWRITE_SYSTEM_MESSAGE if rewrite else SUMMARIZE_SYSTEM_MESSAGE
 
 	user_message_token_count = get_token_count(user_message)
