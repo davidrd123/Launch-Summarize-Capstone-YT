@@ -43,7 +43,7 @@ def compute_coherence_values_params(dictionary, corpus, texts, alpha, eta, decay
     for a in alpha:
         for e in eta:
             for d in decay:
-                model = LdaModel(corpus=corpus, num_topics=11, id2word=dictionary, alpha=a, eta=e, decay=d)
+                model = LdaModel(corpus=corpus, num_topics=9, id2word=dictionary, alpha=a, eta=e, decay=d)
                 model_list.append(model)
                 coherencemodel = CoherenceModel(model=model, texts=texts, dictionary=dictionary, coherence='c_v')
                 coherence_values.append((a, e, d, coherencemodel.get_coherence()))
