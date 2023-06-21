@@ -12,6 +12,18 @@ import string
 import matplotlib.pyplot as plt
 import numpy as np
 
+import pyLDAvis 
+import pyLDAvis.gensim_models as gensimvis
+
+from bertopic import BERTopic
+import openai
+from bertopic.representation import OpenAI
+
+from dotenv import load_dotenv, find_dotenv
+_ = load_dotenv(find_dotenv()) # read local .env file
+
+openai.api_key  = os.environ['OPENAI_API_KEY']
+
 nltk.download('stopwords')
 nltk.download('wordnet')
 
@@ -47,7 +59,7 @@ def compute_coherence_values_params(dictionary, corpus, texts, alpha, eta, decay
     for a in alpha:
         for e in eta:
             for d in decay:
-                model = LdaModel(corpus=corpus, num_topics=11, id2word=dictionary, alpha=a, eta=e, decay=d)
+                model = LdaModel(corpus=corpus, num_topics=9, id2word=dictionary, alpha=a, eta=e, decay=d)
                 model_list.append(model)
                 coherencemodel = CoherenceModel(model=model, texts=texts, dictionary=dictionary, coherence='c_v')
                 coherence_values.append((a, e, d, coherencemodel.get_coherence()))
@@ -74,8 +86,8 @@ for year in years:
 
 	for project in project_names:
 		# transcript is in the file matching '<video_id>_transcript.txt', regex match to filter the files down to it
-		# transcript = [transcripts_path / year / project / file for file in os.listdir(transcripts_path / year / project) if file.endswith('_transcript.txt')][0]
-		transcript = [transcripts_path / year / project / file for file in os.listdir(transcripts_path / year / project) if file.startswith('rewrite_gpt-3.5')][0]        
+		transcript = [transcripts_path / year / project / file for file in os.listdir(transcripts_path / year / project) if file.endswith('_transcript.txt')][0]
+		# transcript = [transcripts_path / year / project / file for file in os.listdir(transcripts_path / year / project) if file.startswith('rewrite_gpt-3.5')][0]        
 		with open(transcript) as f:
 			list_of_transcripts[project] = f.read()
 
@@ -84,7 +96,7 @@ exclude = set(string.punctuation)
 lemma = WordNetLemmatizer()
 
 all_project_names = [name.lower() for name in list(list_of_transcripts.keys())]
-additional_stopwords = ["like", "one", "user", "data", "application", "service", "also"]
+additional_stopwords = ["like", "one", "also", "would", "need"]
 
 # Add project names to the stop words
 stop.update(all_project_names)
@@ -108,22 +120,34 @@ dictionary = corpora.Dictionary(texts)
 # Convert document (a list of words) into the bag-of-words format = list of (token_id, token_count) tuples.
 corpus_bow = [dictionary.doc2bow(text) for text in texts]
 
-# Train the LDA model
-lda_model = models.LdaModel(corpus_bow, num_topics=8, id2word=dictionary, passes=60, alpha=ALPHA, eta=ETA, decay=DECAY)
+texts_joined = [' '.join(text) for text in texts]
+representation_model = OpenAI(model="gpt-3.5-turbo")
+topic_model = BERTopic(embedding_model=representation_model, nr_topics=9, low_memory=True)
 
-# Print the topics
-topics = lda_model.print_topics(num_words=8)
-for topic in topics:
-    print(topic)
 
-corpus_topics = [sorted(topics, key=lambda record: -record[1])[0] 
-                 for topics in lda_model.get_document_topics(corpus_bow) ]
+# # Train the LDA model
+# lda_model = models.LdaModel(corpus_bow, num_topics=8, id2word=dictionary, passes=15, alpha=ALPHA, eta=ETA, decay=DECAY)
 
-for project, corpus_topic in zip(list_of_transcripts.keys(), corpus_topics):
-    print("Project ", project, " is about topic ", corpus_topic[0], " with a contribution of ", round(corpus_topic[1]*100, 2), "%")
+# lda_viz = gensimvis.prepare(lda_model, corpus_bow, dictionary)
 
-coherence_model_lda = CoherenceModel(model=lda_model, texts=texts, dictionary=dictionary, coherence='c_v')
-print('\nCoherence Score: ', coherence_model_lda.get_coherence())
+# # Print the topics
+# topics = lda_model.print_topics(num_words=10)
+# for topic in topics:
+#     print(topic)
+
+# corpus_topics = [sorted(topics, key=lambda record: -record[1])[0] 
+#                  for topics in lda_model.get_document_topics(corpus_bow) ]
+
+# for project, corpus_topic in zip(list_of_transcripts.keys(), corpus_topics):
+#     print("Project ", project, " is about topic ", corpus_topic[0], " with a contribution of ", round(corpus_topic[1]*100, 2), "%")
+    
+# pyLDAvis.save_html(lda_viz, 'lda.html')
+
+
+
+
+# coherence_model_lda = CoherenceModel(model=lda_model, texts=texts, dictionary=dictionary, coherence='c_v') 
+# print('\nCoherence Score: ', coherence_model_lda.get_coherence())
 
 ### Compute Coherence Score - Num Topics
 # start, limit, step = 2, 26, 1
