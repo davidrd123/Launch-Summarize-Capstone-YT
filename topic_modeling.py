@@ -15,6 +15,9 @@ import numpy as np
 nltk.download('stopwords')
 nltk.download('wordnet')
 
+ALPHA = 0.01
+ETA = 0.31
+DECAY = 0.6
 
 def clean(doc):
     stop_free = " ".join([i for i in doc.lower().split() if i not in stop])
@@ -102,7 +105,7 @@ dictionary = corpora.Dictionary(texts)
 corpus_bow = [dictionary.doc2bow(text) for text in texts]
 
 # Train the LDA model
-lda_model = models.LdaModel(corpus_bow, num_topics=11, id2word=dictionary, passes=15)
+lda_model = models.LdaModel(corpus_bow, num_topics=11, id2word=dictionary, passes=15, alpha=ALPHA, eta=ETA, decay=DECAY)
 
 # Print the topics
 topics = lda_model.print_topics(num_words=8)
@@ -121,8 +124,11 @@ for project, corpus_topic in zip(list_of_transcripts.keys(), corpus_topics):
 # plot_coherence_values(start, limit, step, coherence_values)
 
 ### Compute Coherence Score - Alpha / Eta / Decay
-alpha = list(np.arange(0.01, 1, 0.3))
-eta = list(np.arange(0.01, 1, 0.3))
-decay = list(np.arange(0.5, 1, 0.1))
+# alpha = list(np.arange(0.01, 1, 0.3))
+# eta = list(np.arange(0.01, 1, 0.3))
+# decay = list(np.arange(0.5, 1, 0.1))
 
-model_list, coherence_values = compute_coherence_values_params(dictionary=dictionary, corpus=corpus_bow, texts=texts, alpha=alpha, eta=eta, decay=decay)
+# model_list, coherence_values = compute_coherence_values_params(dictionary=dictionary, corpus=corpus_bow, texts=texts, alpha=alpha, eta=eta, decay=decay)
+# best_a, best_e, best_d, best_coherence = max(coherence_values, key=lambda item: item[-1])
+# print(f"Best parameters: alpha={best_params[0]}, eta={best_params[1]}, decay={best_params[2]}")
+# print(f"Best coherence score: {best_score}")
