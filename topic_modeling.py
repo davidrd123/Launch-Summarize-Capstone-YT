@@ -15,9 +15,13 @@ import numpy as np
 nltk.download('stopwords')
 nltk.download('wordnet')
 
-ALPHA = 0.01
-ETA = 0.31
-DECAY = 0.6
+# ALPHA = 0.61
+# ETA = 0.91
+# DECAY = 0.5
+
+ALPHA = 0.31
+ETA = 0.61
+DECAY = 0.5
 
 def clean(doc):
     stop_free = " ".join([i for i in doc.lower().split() if i not in stop])
@@ -30,7 +34,7 @@ def compute_coherence_values_num_topics(dictionary, corpus, texts, limit, start=
     coherence_values = []
     model_list = []
     for num_topics in range(start, limit, step):
-        model = LdaModel(corpus=corpus, num_topics=num_topics, id2word=dictionary)
+        model = LdaModel(corpus=corpus, num_topics=num_topics, id2word=dictionary, alpha=ALPHA, eta=ETA, decay=DECAY)
         model_list.append(model)
         coherencemodel = CoherenceModel(model=model, texts=texts, dictionary=dictionary, coherence='c_v')
         coherence_values.append(coherencemodel.get_coherence())
@@ -105,7 +109,7 @@ dictionary = corpora.Dictionary(texts)
 corpus_bow = [dictionary.doc2bow(text) for text in texts]
 
 # Train the LDA model
-lda_model = models.LdaModel(corpus_bow, num_topics=11, id2word=dictionary, passes=15, alpha=ALPHA, eta=ETA, decay=DECAY)
+lda_model = models.LdaModel(corpus_bow, num_topics=8, id2word=dictionary, passes=15, alpha=ALPHA, eta=ETA, decay=DECAY)
 
 # Print the topics
 topics = lda_model.print_topics(num_words=8)
@@ -118,8 +122,11 @@ corpus_topics = [sorted(topics, key=lambda record: -record[1])[0]
 for project, corpus_topic in zip(list_of_transcripts.keys(), corpus_topics):
     print("Project ", project, " is about topic ", corpus_topic[0], " with a contribution of ", round(corpus_topic[1]*100, 2), "%")
 
+coherence_model_lda = CoherenceModel(model=lda_model, texts=texts, dictionary=dictionary, coherence='c_v')
+print('\nCoherence Score: ', coherence_model_lda.get_coherence())
+
 ### Compute Coherence Score - Num Topics
-# start, limit, step = 2, 26, 3
+# start, limit, step = 2, 26, 1
 # model_list, coherence_values = compute_coherence_values_num_topics(dictionary=dictionary, corpus=corpus_bow, texts=texts, start=start, limit=limit, step=step)
 # plot_coherence_values(start, limit, step, coherence_values)
 
@@ -130,5 +137,4 @@ for project, corpus_topic in zip(list_of_transcripts.keys(), corpus_topics):
 
 # model_list, coherence_values = compute_coherence_values_params(dictionary=dictionary, corpus=corpus_bow, texts=texts, alpha=alpha, eta=eta, decay=decay)
 # best_a, best_e, best_d, best_coherence = max(coherence_values, key=lambda item: item[-1])
-# print(f"Best parameters: alpha={best_params[0]}, eta={best_params[1]}, decay={best_params[2]}")
-# print(f"Best coherence score: {best_score}")
+# print("Best coherence score: ", best_coherence, " with alpha: ", best_a, " eta: ", best_e, " decay: ", best_d)
