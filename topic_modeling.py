@@ -10,6 +10,7 @@ from nltk.corpus import stopwords
 from nltk.stem.wordnet import WordNetLemmatizer
 import string
 import matplotlib.pyplot as plt
+import numpy as np
 
 nltk.download('stopwords')
 nltk.download('wordnet')
@@ -22,7 +23,7 @@ def clean(doc):
     short_word_free = " ".join(word for word in normalized.split() if len(word) > 2)
     return short_word_free
 
-def compute_coherence_values(dictionary, corpus, texts, limit, start=2, step=3):
+def compute_coherence_values_num_topics(dictionary, corpus, texts, limit, start=2, step=3):
     coherence_values = []
     model_list = []
     for num_topics in range(start, limit, step):
@@ -30,6 +31,19 @@ def compute_coherence_values(dictionary, corpus, texts, limit, start=2, step=3):
         model_list.append(model)
         coherencemodel = CoherenceModel(model=model, texts=texts, dictionary=dictionary, coherence='c_v')
         coherence_values.append(coherencemodel.get_coherence())
+
+    return model_list, coherence_values
+
+def compute_coherence_values_params(dictionary, corpus, texts, alpha, eta, decay):
+    coherence_values = []
+    model_list = []
+    for a in alpha:
+        for e in eta:
+            for d in decay:
+                model = LdaModel(corpus=corpus, num_topics=11, id2word=dictionary, alpha=a, eta=e, decay=d)
+                model_list.append(model)
+                coherencemodel = CoherenceModel(model=model, texts=texts, dictionary=dictionary, coherence='c_v')
+                coherence_values.append((a, e, d, coherencemodel.get_coherence()))
 
     return model_list, coherence_values
 
@@ -101,7 +115,14 @@ corpus_topics = [sorted(topics, key=lambda record: -record[1])[0]
 for project, corpus_topic in zip(list_of_transcripts.keys(), corpus_topics):
     print("Project ", project, " is about topic ", corpus_topic[0], " with a contribution of ", round(corpus_topic[1]*100, 2), "%")
 
-### Compute Coherence Score
+### Compute Coherence Score - Num Topics
 # start, limit, step = 2, 26, 3
-# model_list, coherence_values = compute_coherence_values(dictionary=dictionary, corpus=corpus_bow, texts=texts, start=start, limit=limit, step=step)
+# model_list, coherence_values = compute_coherence_values_num_topics(dictionary=dictionary, corpus=corpus_bow, texts=texts, start=start, limit=limit, step=step)
 # plot_coherence_values(start, limit, step, coherence_values)
+
+### Compute Coherence Score - Alpha / Eta / Decay
+alpha = list(np.arange(0.01, 1, 0.3))
+eta = list(np.arange(0.01, 1, 0.3))
+decay = list(np.arange(0.5, 1, 0.1))
+
+model_list, coherence_values = compute_coherence_values_params(dictionary=dictionary, corpus=corpus_bow, texts=texts, alpha=alpha, eta=eta, decay=decay)
