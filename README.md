@@ -1,64 +1,72 @@
-# Capstone Project Youtube Presentations Analysis
+Certainly, here's a more detailed structured version:
 
-This repository is dedicated to the analysis of previous Capstone Projects. It pulls the transcripts of their corresponding YouTube videos and performs various tasks on them.
+# Capstone Project Transcript Analysis
+
+This repository allows you to extract and analyze transcripts from previous Capstone Projects through various methodologies. The extensive process involves fetching video transcripts, transcript processing, topic modeling, and interactive presentation of results.
 
 ## Setup
 
-- Activate your .venv or Conda environment:
+1. **Environment Activation**
 
-```
+Activate your .venv or Conda environment:
+
+```bash
 pip install -r requirements.txt
 ```
 
-- Create a `.env` file with the following keys:
-  - `YT_DATA_API_KEY`: API key for accessing YouTube Data API
-  - `OPENAI_API_KEY`: API key for accessing OpenAI API
+2. **API Keys**
 
-## Step 1: Fetch Video Transcripts
+Have a `.env` file prepared with the following keys:
+  - `YT_DATA_API_KEY`: For access to YouTube Data API
+  - `OPENAI_API_KEY`: For accessing OpenAI API
 
-To fetch the transcript of a YouTube video, run the following command:
+## Usage
 
-```
+### 1. Video Transcript Extraction
+
+The script `get_transcript.py` is used to fetch transcripts from YouTube videos. Run the following command and provide the specific video URL when prompted:
+
+```bash
 python get_transcript.py
 ```
 
-This command will prompt you to enter the video URL. After entering the URL, the script will fetch the transcript and save it in the respective subdirectory based on the year and project name.
+The fetched transcript will be saved under a directory structure `<year>/<project_name>`. The year is derived from the playlist name and project name from the video title.
 
-## Step 2: Process Transcripts with GPT Models
+### 2. GPT-Based Transcript Processing 
 
-To process the transcripts using GPT models, run the following command:
+Use the `process_transcript_gpt.py` script to process the transcripts. It facilitates an interactive CLI menu. 
 
-```
+```bash
 python process_transcript_gpt.py
 ```
 
-This command will open an interactive menu where you can select different options for processing the transcripts. The available options are:
-- Summarize Transcript in Outline Form
-- Rewrite Transcript in Shorter Form
-- Summarize Rewrite in Outline Form
-- Get token count of Transcript
-- Get token count of Rewrite
+This allows you to select options like:
+- "Rewrite Transcript in Shorter Form"
+- "Get token count of Transcript"
+- "Summarize Rewrite in Outline Form"
+- "Summarize Transcript in Outline Form"
+- "Get token count of Rewrite"
 
-You can choose the desired option and follow the instructions provided in the CLI.
+Follow the instructions provided in the CLI.
 
-## Step 3: Topic Modeling
+### 3. Topic Modeling of Transcripts
 
-To perform topic modeling on the transcripts, run the following command:
+For topic modeling, use `topic_modeling.py`.
 
-```
+```bash
 python topic_modeling.py
 ```
 
-This command will analyze the transcripts using LDA (Latent Dirichlet Allocation) and propose topics that match the documents. The topics and their corresponding terms will be printed, along with the project-to-topic assignments.
+This applies the LDA (Latent Dirichlet Allocation) approach, proposing topics for the documents. The output includes details about topics, their corresponding terms, and project-to-topic allocations.
 
-## Step 4: View Summaries using Streamlit
+### 4. Summaries Visualization with Streamlit
 
-To view the summaries generated from the processed transcripts, run the following command:
+Employ `view_writeups.py` to launch a Streamlit app for accessible and interactive summary visualization.
 
-```
+```bash
 streamlit run view_writeups.py
 ```
 
-This command will launch a Streamlit app where you can interactively view the summaries of the Capstone Projects.
+**Note:** Each mentioned step contributes to the analysis of the Capstone Project transcripts, providing crucial insights derived from their YouTube video transcripts.
 
-That's it! You can now use this repository to analyze and extract valuable insights from previous Capstone Projects.
+Leap into transcript analysis and uncover the kernels of knowledge from previous Capstone Projects!
