@@ -1,76 +1,71 @@
 # Launch School Capstone Project Transcript Analysis
 
-This repository allows you to extract and analyze transcripts from previous Launch School Capstone Projects through various methodologies. The processing pipeline involves fetching video transcripts, transcript processing, topic modeling, and interactive presentation of results.
+This repository provides tools and methodologies to extract and analyze transcripts from Launch School Capstone Projects. The project consists of a four-step pipeline - fetching video transcripts, processing transcripts, modeling topic data, and delivering an interactive presentation of the results.
 
-You can find a Streamlit App to view and interact with the results at <https://summarize-capstone-yt.streamlit.app/>
+Experience the process live and interact with results at [Capstone Summary Web App](https://summarize-capstone-yt.streamlit.app/).
 
-## Setup
+## Setup & Requirements
 
-1. **Environment Activation**
+1. **Virtual Environment Activation**
 
-Activate your .venv or Conda environment:
+Before running any scripts, activate your virtual environment (.venv) or Conda environment:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-2. **API Keys**
+2. **API Credentials**
 
-Have a `.env` file prepared with the following keys:
-  - `YT_DATA_API_KEY`: For access to YouTube Data API
-  - `OPENAI_API_KEY`: For accessing OpenAI API
+Required API keys for YouTube Data and OpenAI should reside in your `.env` file as `YT_DATA_API_KEY` and `OPENAI_API_KEY` respectively.
 
-## Usage
+## Step-by-Step Usage
 
-### 1. Video Transcript Extraction
+### 1. Fetching Video Transcripts
 
-The script `get_transcript.py` is used to fetch transcripts from YouTube videos. Run the following command and provide the specific video URL when prompted:
+Running `get_transcript.py` fetches transcripts from YouTube videos. Input the specific video URL when the script prompts:
 
 ```bash
 python get_transcript.py
 ```
 
-The fetched transcript will be saved under a directory structure `<year>/<project_name>`. The year is derived from the playlist name and project name from the video title.
+Each fetched transcript is stored in a directory named after the project and categorized under corresponding `<year>/<project_name>` directories.
 
-### 2. GPT-Based Transcript Processing 
+### 2. Transcript Processing with GPT Models 
 
-The processing of transcripts using GPT models is controlled by `process_transcript_gpt.py`. When executed, this script prompts an interactive CLI menu for processing preferences.
+`process_transcript_gpt.py` offers control over transcript processing using GPT models. The script produces an interactive CLI menu allowing you to select a project and a GPT model - either 'gpt-4' or 'gpt-3.5-turbo-16k' - for processing.
 
 ```bash
 python process_transcript_gpt.py
 ```
 
-In the CLI’s menu, you can select the project you want to process by its `<year>` and `<project_name>`. Then, you’ll choose a suitable GPT model for processing. The available GPT models are `'gpt-4'` and `'gpt-3.5-turbo-16k'`. 
+Options available within the processing menu include:
 
-The processing options include:
-- **"Rewrite Transcript in Shorter Form"**: Condenses the transcript while maintaining key points. This should be done before any other option if it's not already complete.
-- **"Summarize Rewrite in Outline Form"**: Creates an outline for the rewritten transcript, which can be used with either `'gpt-4'` or `'gpt-3.5-turbo-16k'` models.
-- **"Summarize Transcript in Outline Form"**: Provides a summary in outline form of the raw transcript. Typically, this option is only feasible with `'gpt-3.5-turbo-16k'` as raw transcripts of an hour-long video contain around 10k tokens, surpassing the `'gpt-4'` models limit of 8k tokens.
-- **"Get token count of Transcript"**: Summarises the token number in the raw transcript.
-- **"Get token count of Rewrite**": Gives the count of tokens in the rewritten transcript.
+- **"Rewrite Transcript in Shorter Form"**: It condenses the transcript retaining key points. If a rewritten form doesn't exist, this operation should be performed first.
 
-### 3. Topic Modeling of Transcripts
+- **"Summarize Rewrite in Outline Form"**: Provides an outline summary for the rewritten transcript.
 
-For an in-depth analysis to extract dominant topics from the transcripts, use the `topic_modeling.py` script to perform Latent Dirichlet Allocation (LDA).
+- **"Summarize Transcript in Outline Form"**: Facilitates an outline summary for raw transcripts. Note: This option requires the use of 'gpt-3.5-turbo-16k' for transcripts exceeding 8k tokens.
+
+- **"Get token count of Transcript"** and **"Get token count of Rewrite"**: Both options return the token count for respective transcripts.
+
+### 3. Topic Modeling on Transcripts
+
+LDA (Latent Dirichlet Allocation) implemented in the `topic_modeling.py` script surfaces dominant topics from the transcripts.
 
 ```bash
 python topic_modeling.py
 ```
 
-The script takes the raw transcripts or rewrite (depending on the lines of code that are uncommented), and applies LDA to derive a set of proposed topics that most represent the content. There are sections included for calculating coherence and performing a grid search for refining hyperparameters and the number of topics. 
+It uses either raw transcripts or a rewritten form (depends on uncommented lines in the script) and proposes a set of topics for each document. Options for calculating coherence and executing a grid search for parameter optimization are available. Uncomment `# pyLDAvis.save_html(lda_viz, 'lda.html')` to output an easy-to-understand interactive HTML visualization.
 
-The produced output provides an insight into computed topics mapped with their correlated terms. For an easy visualisation, uncomment `# pyLDAvis.save_html(lda_viz, 'lda.html')` - this will generate an interactive HTML page.
+The results also cluster projects by the identified primary topic and measure the level of association. It allows for a comparison and understanding of the broad topics covered per project.
 
-Simultaneously, each project is annotated by identified topic labels showcasing the strength of its association with the topic. For example 'Project  Firefly  is about topic  5  with a contribution of  99.87 %'. This method reveals thematic connections among various projects and their underlying main topics.
+### 4. Interactive Summary Visualization with Streamlit
 
-### 4. Summaries Visualization with Streamlit
-
-Employ `view_writeups.py` to launch a Streamlit app for accessible and interactive summary visualization.
+The final step encompasses an accessible and interactive summary visualization, available via a Streamlit app. To launch the app, run:
 
 ```bash
 streamlit run view_writeups.py
 ```
 
-**Note:** Each mentioned step contributes to the analysis of the Capstone Project transcripts, providing crucial insights derived from their YouTube video transcripts.
-
-Leap into transcript analysis and uncover the kernels of knowledge from previous Capstone Projects!
+Now you can embark on analyzing previous Capstone Projects transcripts and discover valuable insights!
