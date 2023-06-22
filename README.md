@@ -2,6 +2,8 @@
 
 This repository allows you to extract and analyze transcripts from previous Launch School Capstone Projects through various methodologies. The processing pipeline involves fetching video transcripts, transcript processing, topic modeling, and interactive presentation of results.
 
+You can find a Streamlit App to view and interact with the results at <https://summarize-capstone-yt.streamlit.app/>
+
 ## Setup
 
 1. **Environment Activation**
