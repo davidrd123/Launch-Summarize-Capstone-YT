@@ -2,7 +2,7 @@ Certainly, here's a more detailed structured version:
 
 # Capstone Project Transcript Analysis
 
-This repository allows you to extract and analyze transcripts from previous Capstone Projects through various methodologies. The extensive process involves fetching video transcripts, transcript processing, topic modeling, and interactive presentation of results.
+This repository allows you to extract and analyze transcripts from previous Launch School Capstone Projects through various methodologies. The processing pipeline involves fetching video transcripts, transcript processing, topic modeling, and interactive presentation of results.
 
 ## Setup
 
