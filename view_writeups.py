@@ -3,7 +3,7 @@ from pathlib import Path
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-
+import json
 import streamlit as st
 
 ROOT_DIR = os.getcwd()
@@ -11,6 +11,8 @@ ROOT_DIR = os.getcwd()
 # print(f'ROOT_DIR: {ROOT_DIR}');
 # print(f'os.listdir(ROOT_DIR): {os.listdir(ROOT_DIR)}');
 
+with open('team_to_topic.json', 'r') as f:
+    team_to_topic = json.load(f)
 
 
 transcripts_path = Path(ROOT_DIR) / 'transcripts'
@@ -61,7 +63,9 @@ else:
     with open(file_path) as f:
         file_content = f.read()
 
-st.title(selected_presentation)
+title = f'[[{team_to_topic[selected_presentation]}]]'
+st.markdown(f"<h1 style='text-align: center;'>{title}</h1>", unsafe_allow_html=True)
+# st.title(f'{selected_presentation} - [[{team_to_topic[selected_presentation]}]]')
 st.markdown(file_content)
 
 # import streamlit.components.v1 as components
