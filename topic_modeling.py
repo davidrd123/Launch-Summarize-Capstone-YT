@@ -15,9 +15,9 @@ import numpy as np
 import pyLDAvis 
 import pyLDAvis.gensim_models as gensimvis
 
-from bertopic import BERTopic
+# from bertopic import BERTopic
 import openai
-from bertopic.representation import OpenAI
+# from bertopic.representation import OpenAI
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -86,8 +86,8 @@ for year in years:
 
 	for project in project_names:
 		# transcript is in the file matching '<video_id>_transcript.txt', regex match to filter the files down to it
-		transcript = [transcripts_path / year / project / file for file in os.listdir(transcripts_path / year / project) if file.endswith('_transcript.txt')][0]
-		# transcript = [transcripts_path / year / project / file for file in os.listdir(transcripts_path / year / project) if file.startswith('rewrite_gpt-3.5')][0]        
+		# transcript = [transcripts_path / year / project / file for file in os.listdir(transcripts_path / year / project) if file.endswith('_transcript.txt')][0]
+		transcript = [transcripts_path / year / project / file for file in os.listdir(transcripts_path / year / project) if file.startswith('rewrite_gpt-3.5')][0]        
 		with open(transcript) as f:
 			list_of_transcripts[project] = f.read()
 
@@ -121,25 +121,25 @@ dictionary = corpora.Dictionary(texts)
 corpus_bow = [dictionary.doc2bow(text) for text in texts]
 
 texts_joined = [' '.join(text) for text in texts]
-representation_model = OpenAI(model="gpt-3.5-turbo")
-topic_model = BERTopic(embedding_model=representation_model, nr_topics=9, low_memory=True)
+# representation_model = OpenAI(model="gpt-3.5-turbo")
+# topic_model = BERTopic(embedding_model=representation_model, nr_topics=9, low_memory=True)
 
 
-# # Train the LDA model
-# lda_model = models.LdaModel(corpus_bow, num_topics=8, id2word=dictionary, passes=15, alpha=ALPHA, eta=ETA, decay=DECAY)
+# Train the LDA model
+lda_model = models.LdaModel(corpus_bow, num_topics=8, id2word=dictionary, passes=15, alpha=ALPHA, eta=ETA, decay=DECAY)
 
-# lda_viz = gensimvis.prepare(lda_model, corpus_bow, dictionary)
+lda_viz = gensimvis.prepare(lda_model, corpus_bow, dictionary)
 
-# # Print the topics
-# topics = lda_model.print_topics(num_words=10)
-# for topic in topics:
-#     print(topic)
+# Print the topics
+topics = lda_model.print_topics(num_words=10)
+for topic in topics:
+    print(topic)
 
-# corpus_topics = [sorted(topics, key=lambda record: -record[1])[0] 
-#                  for topics in lda_model.get_document_topics(corpus_bow) ]
+corpus_topics = [sorted(topics, key=lambda record: -record[1])[0] 
+                 for topics in lda_model.get_document_topics(corpus_bow) ]
 
-# for project, corpus_topic in zip(list_of_transcripts.keys(), corpus_topics):
-#     print("Project ", project, " is about topic ", corpus_topic[0], " with a contribution of ", round(corpus_topic[1]*100, 2), "%")
+for project, corpus_topic in zip(list_of_transcripts.keys(), corpus_topics):
+    print("Project ", project, " is about topic ", corpus_topic[0], " with a contribution of ", round(corpus_topic[1]*100, 2), "%")
     
 # pyLDAvis.save_html(lda_viz, 'lda.html')
 
