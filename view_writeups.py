@@ -11,7 +11,7 @@ ROOT_DIR = os.getcwd()
 # print(f'ROOT_DIR: {ROOT_DIR}');
 # print(f'os.listdir(ROOT_DIR): {os.listdir(ROOT_DIR)}');
 
-st.title("SummarizeYT")
+# st.title("SummarizeYT")
 
 transcripts_path = Path(ROOT_DIR) / 'transcripts'
 if not transcripts_path.exists():
@@ -30,6 +30,9 @@ presentations = sorted([presentation for presentation in presentations if presen
 selected_presentation = st.sidebar.selectbox('Select a presentation', presentations)
 
 files = os.listdir(Path(ROOT_DIR) / 'transcripts' / selected_year / selected_presentation)
+
+# Filter to only 'summary_rewrite_*', 'rewrite_gpt-*', and 'summary_*' files
+files = [file for file in files if file.startswith('summary_rewrite_') or file.startswith('rewrite_gpt-') or file.startswith('summary_')]
 
 selected_file = st.sidebar.selectbox('Select a file', files)
 
