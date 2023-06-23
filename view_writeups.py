@@ -66,6 +66,7 @@ else:
 title = f'[[{team_to_topic[selected_presentation]}]]'
 st.markdown(f"<h1 style='text-align: center;'>{title}</h1>", unsafe_allow_html=True)
 st.markdown("[See LDA Visualization](https://davidrd123.github.io/Launch-Summarize-Capstone-YT/index.html)")
+st.markdown("[Semantic Search over the Videos](https://launch-semantic-search-capstone-yt.vercel.app/)")
 # st.title(f'{selected_presentation} - [[{team_to_topic[selected_presentation]}]]')
 st.markdown(file_content)
 
