@@ -2,7 +2,7 @@
 
 This repository provides tools and methodologies to extract and analyze transcripts from Launch School Capstone Projects. The project consists of a four-step pipeline - fetching video transcripts, processing transcripts, modeling topic data, and delivering an interactive presentation of the results.
 
-Experience the process live and interact with results at [Capstone Summary Web App](https://summarize-capstone-yt.streamlit.app/).
+Experience the process live and interact with results at [Capstone Summary Web App](https://launch-summarize-capstone-yt.streamlit.app/).
 
 ## Setup & Requirements
 
