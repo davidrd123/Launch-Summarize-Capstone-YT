@@ -22,7 +22,7 @@ Required API keys for YouTube Data and OpenAI should reside in your `.env` file 
 
 ### 1. Fetching Video Transcripts
 
-Running `get_transcript.py` fetches transcripts from YouTube videos. Input the specific video URL when the script prompts:
+Running `get_transcript.py` fetches transcripts from YouTube videos, and is specifically targeted at the format of the Launch School Capstone videos (it relies on the video title format to get the project name, etc.). There is an interactive CLI menu that allows you to choose to provide either a video URL or a playlist URL. The script then fetches the transcript for each video in the playlist or the single video.
 
 ```bash
 python get_transcript.py
