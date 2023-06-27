@@ -1,7 +1,15 @@
 import os
 import sys
+import json
+import base64
 from pathlib import Path
 import requests
+import google.auth
+import google.auth.transport.requests
+import google.oauth2.credentials
+import googleapiclient.discovery
+import inquirer
+
 from googleapiclient.discovery import build
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv())
@@ -17,6 +25,20 @@ yt_playlists_url = 'https://www.googleapis.com/youtube/v3/playlists'
 
 target_video_url = 'https://www.youtube.com/watch?v=I3sinNeqwZU'
 
+
+YT_DATA_API_BASE_URL = 'https://www.googleapis.com/youtube/v3'
+YT_PLAYLIST_ITEMS_URL = f'{YT_DATA_API_BASE_URL}/playlistItems'
+
+# Retrieve and decode the base64-encoded credentials from the environment
+google_credentials_base64 = os.environ["GOOGLE_CREDENTIALS_BASE64"]
+google_credentials_info = json.loads(base64.b64decode(google_credentials_base64))
+
+# Build credentials from the service account info
+credentials = google.oauth2.service_account.Credentials.from_service_account_info(google_credentials_info, scopes=['https://www.googleapis.com/auth/youtube.force-ssl'])
+
+
+# Set up the YouTube Data API client
+youtube = googleapiclient.discovery.build('youtube', 'v3', credentials=credentials)
 
 def video_url_to_id(video_url):
 	# Handle case of further parameters
@@ -36,6 +58,7 @@ def video_url_to_playlist_id(video_url):
 	return playlist_id
 
 def get_transcript(video_id):
+	print(f'Getting transcript for video_id: {video_id}')
 	try:
 		transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
 		
@@ -51,17 +74,24 @@ def save_transcript(video_id, playlist_id, transcript):
 	capstone_year = video_playlist_to_presentation_year(get_video_playlist(playlist_id))
 	transcripts_path = Path('transcripts')
 
-	subfolder_path = transcripts_path / capstone_year / video_title
+	# Video title is going to start with 'Launch School Capstone Presentation: <Project Name>'
+	# We want to remove the 'Launch School Capstone Presentation: ' part
+	project_name = video_info_to_project_name(get_video_info(video_id))
+
+	subfolder_path = transcripts_path / capstone_year / project_name
 	subfolder_path.mkdir(parents=True, exist_ok=True)
 	
-	# Path(f'transcripts/{capstone_year}/{video_title}').mkdir(parents=True, exist_ok=True)
-
+	
 	if not transcript:
 		success, transcript = get_transcript(video_id)
 		if not success:
 			return False
 	file_path = subfolder_path / f'{video_id}_transcript.txt'
+	if file_path.exists():
+		print(f'File already exists at {file_path} for video_id: {video_id}. Skipping...')
+		return False
 	with file_path.open('w', encoding='utf-8') as f:
+		print(f'Writing transcript to {file_path}')
 		f.write(transcript)
 	
 	return True
@@ -91,6 +121,11 @@ def get_video_info(video_id):
 	response = requests.get(yt_data_url, params=params)
 	return response.json()
 
+def video_info_to_project_name(video_info):
+	title = video_info['items'][0]['snippet']['title']
+	video_title = title.split(': ')[1]
+	return video_title
+
 def video_info_to_title(video_info):
 	title = video_info['items'][0]['snippet']['title']
 	# Remove invalid characters (e.g. /, \, :, etc.)
@@ -99,31 +134,67 @@ def video_info_to_title(video_info):
 	title = title.replace(' ', '_')
 	return title
 
+def select_video_or_playlist():
+	options = [
+		'Video',
+		'Playlist'
+	]
 
-def app():
-	video_url = input('Enter video url: ')
-	if not video_url:
-		video_url = target_video_url
-		# video_url = input('Enter video url: ')
-	# print(f'video_url: {video_url}')
+	questions = [
+		inquirer.List('video_or_playlist',
+			message='Select video or playlist',
+			choices=options,
+		),
+	]
 
-	video_id = video_url_to_id(video_url)
-	playlist_id = video_url_to_playlist_id(video_url) # returns None if no playlist ID found, needs to be handled
-	video_playlist = get_video_playlist(playlist_id)
+	answers = inquirer.prompt(questions)
+	return answers['video_or_playlist']
 
-	# print(f'Capstone year: {video_playlist_to_presentation_year(video_playlist)}')
-	
-
+def download_transcript(video_id, playlist_id):
 	success, transcript = get_transcript(video_id)
-	print(video_id)  
 	if success:
-		print("Success!")
-		save_transcript(video_id, playlist_id, transcript)		
+		save_transcript(video_id, playlist_id, transcript)
 	else:
 		exit(transcript)
 
-	video_info = get_video_info(video_id)
-	print(video_info_to_title(video_info))
+def playlist_id_to_video_ids(playlist_id):
+	params = {
+		'key': YT_DATA_API_KEY,
+		'part': 'snippet',
+		'playlistId': playlist_id,
+		'maxResults': 50
+	}
+	response = requests.get(YT_PLAYLIST_ITEMS_URL, params=params)
+	playlist_items = response.json()
+	video_ids = []
+	for item in playlist_items['items']:
+		video_ids.append(item['snippet']['resourceId']['videoId'])
+	return video_ids
+
+def app():
+	answer = select_video_or_playlist()
+	if answer == 'Video':
+		video_url = input('Enter video url: ')
+		video_id = video_url_to_id(video_url)
+		playlist_id = video_url_to_playlist_id(video_url) # returns None if no playlist ID found, needs to be handled
+		video_playlist = get_video_playlist(playlist_id)
+
+		print(f'video_playlist: {video_playlist}')
+		print(f'Capstone year: {video_playlist_to_presentation_year(video_playlist)}')
+		download_transcript(video_id, playlist_id)
+	elif answer == 'Playlist':
+		# print(f'Capstone year: {video_playlist_to_presentation_year(video_playlist)}')
+		playlist_url = input('Enter playlist URL: ')
+		playlist_id = video_url_to_playlist_id(playlist_url)
+		video_ids = playlist_id_to_video_ids(playlist_id)
+		print(f'video_ids: {video_ids}')
+		for video_id in video_ids:
+			download_transcript(video_id, playlist_id)
+	else:
+		print('Invalid option selected. Exiting...')
+		exit()
+
+	
 
 
 if __name__ == '__main__':
