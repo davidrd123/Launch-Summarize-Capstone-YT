@@ -152,9 +152,9 @@ def select_model():
 
 def select_option():
 	options = [
-		'Summarize Transcript in Outline Form', 
 		'Rewrite Transcript in Shorter Form', 
 		'Summarize Rewrite in Outline Form',
+		'Summarize Transcript in Outline Form', 
 		'Get token count of Transcript',
 		'Get token count of Rewrite',
 	]
