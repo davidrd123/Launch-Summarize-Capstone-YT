@@ -15,6 +15,7 @@ import numpy as np
 import pyLDAvis 
 import pyLDAvis.gensim_models as gensimvis
 
+from wordcloud import WordCloud
 from bertopic import BERTopic
 import openai
 from bertopic.representation import OpenAI
@@ -34,6 +35,14 @@ nltk.download('wordnet')
 ALPHA = 0.31
 ETA = 0.61
 DECAY = 0.5
+
+def create_wordcloud(model, topic):
+    text = {word: value for word, value in model.get_topic(topic)}
+    wc = WordCloud(background_color="white", max_words=1000)
+    wc.generate_from_frequencies(text)
+    plt.imshow(wc, interpolation="bilinear")
+    plt.axis("off")
+    plt.show()
 
 def clean(doc):
     stop_free = " ".join([i for i in doc.lower().split() if i not in stop])
@@ -86,8 +95,8 @@ for year in years:
 
 	for project in project_names:
 		# transcript is in the file matching '<video_id>_transcript.txt', regex match to filter the files down to it
-		transcript = [transcripts_path / year / project / file for file in os.listdir(transcripts_path / year / project) if file.endswith('_transcript.txt')][0]
-		# transcript = [transcripts_path / year / project / file for file in os.listdir(transcripts_path / year / project) if file.startswith('rewrite_gpt-3.5')][0]        
+		# transcript = [transcripts_path / year / project / file for file in os.listdir(transcripts_path / year / project) if file.endswith('_transcript.txt')][0]
+		transcript = [transcripts_path / year / project / file for file in os.listdir(transcripts_path / year / project) if file.startswith('rewrite_gpt-3.5')][0]        
 		with open(transcript) as f:
 			list_of_transcripts[project] = f.read()
 
@@ -106,13 +115,13 @@ stop.update(additional_stopwords)
 texts = [clean(transcript).split() for transcript in list_of_transcripts.values()]
 
 # Create bigram and trigram models
-bigram = Phrases(texts, min_count=5, threshold=100)  # higher threshold, fewer phrases.
-trigram = Phrases(bigram[texts], threshold=100)
-bigram_mod = Phraser(bigram)
-trigram_mod = Phraser(trigram)
+# bigram = Phrases(texts, min_count=5, threshold=100)  # higher threshold, fewer phrases.
+# trigram = Phrases(bigram[texts], threshold=100)
+# bigram_mod = Phraser(bigram)
+# trigram_mod = Phraser(trigram)
 
 # Apply the bigram and trigram models
-texts = [trigram_mod[bigram_mod[doc]] for doc in texts]
+# texts = [trigram_mod[bigram_mod[doc]] for doc in texts]
 
 # Create a dictionary representation of the documents.
 dictionary = corpora.Dictionary(texts)
@@ -121,9 +130,29 @@ dictionary = corpora.Dictionary(texts)
 corpus_bow = [dictionary.doc2bow(text) for text in texts]
 
 texts_joined = [' '.join(text) for text in texts]
-representation_model = OpenAI(model="gpt-3.5-turbo")
-topic_model = BERTopic(embedding_model=representation_model, nr_topics=9, low_memory=True)
+representation_model = OpenAI(model="gpt-3.5-turbo", delay_in_seconds=10, chat=True)
 
+# topic_model = BERTopic(embedding_model=representation_model, nr_topics=9, top_n_words=10, n_gram_range=(1, 2), min_topic_size=5, verbose=True)
+# topic_model = BERTopic(embedding_model="distilbert-base-nli-mean-tokens", nr_topics=9, top_n_words=10, n_gram_range=(1, 2), min_topic_size=5, verbose=True)
+topic_model = BERTopic(calculate_probabilities=True, embedding_model="distilbert-base-nli-mean-tokens", nr_topics=9, top_n_words=10, n_gram_range=(2, 3), min_topic_size=5, verbose=True)
+
+# topic_model = BERTopic(n_gram_range=(2, 3))
+
+# Fit to your data
+topics, probabilities = topic_model.fit_transform(texts_joined)
+
+# Use the "c-TF-IDF" strategy with a threshold
+# new_topics = topic_model.reduce_outliers(texts_joined, topics , strategy="c-tf-idf", threshold=0.1)
+
+# Reduce all outliers that are left with the "distributions" strategy
+new_topics = topic_model.reduce_outliers(texts_joined, topics, strategy="distributions")
+
+# topic_model.update_topics(texts_joined, topics=new_topics)
+
+# Reduce outliers
+# new_topics = topic_model.reduce_outliers(texts_joined, topics, strategy="embeddings")
+
+frequent_topics = topic_model.get_topic_freq()
 
 # # Train the LDA model
 # lda_model = models.LdaModel(corpus_bow, num_topics=8, id2word=dictionary, passes=15, alpha=ALPHA, eta=ETA, decay=DECAY)
