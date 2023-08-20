@@ -9,6 +9,7 @@ import google.auth.transport.requests
 import google.oauth2.credentials
 import googleapiclient.discovery
 import inquirer
+import pdb
 
 from googleapiclient.discovery import build
 from dotenv import load_dotenv, find_dotenv
@@ -30,7 +31,8 @@ YT_DATA_API_BASE_URL = 'https://www.googleapis.com/youtube/v3'
 YT_PLAYLIST_ITEMS_URL = f'{YT_DATA_API_BASE_URL}/playlistItems'
 
 # Retrieve and decode the base64-encoded credentials from the environment
-google_credentials_base64 = os.environ["GOOGLE_CREDENTIALS_BASE64"]
+# google_credentials_base64 = os.environ["GOOGLE_CREDENTIALS_BASE64"]
+google_credentials_base64 = os.getenv('GOOGLE_CREDENTIALS_BASE64')
 google_credentials_info = json.loads(base64.b64decode(google_credentials_base64))
 
 # Build credentials from the service account info
@@ -84,7 +86,7 @@ def save_transcript(video_id, playlist_id, transcript):
 	
 	if not transcript:
 		success, transcript = get_transcript(video_id)
-		if not success:
+		if not success :
 			return False
 	file_path = subfolder_path / f'{video_id}_transcript.txt'
 	if file_path.exists():
@@ -167,6 +169,8 @@ def playlist_id_to_video_ids(playlist_id):
 	response = requests.get(YT_PLAYLIST_ITEMS_URL, params=params)
 	playlist_items = response.json()
 	video_ids = []
+	# Break with pdb:
+	# pdb.set_trace()
 	for item in playlist_items['items']:
 		video_ids.append(item['snippet']['resourceId']['videoId'])
 	return video_ids
