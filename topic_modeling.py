@@ -15,10 +15,9 @@ import numpy as np
 import pyLDAvis 
 import pyLDAvis.gensim_models as gensimvis
 
-from wordcloud import WordCloud
-from bertopic import BERTopic
+# from bertopic import BERTopic
 import openai
-from bertopic.representation import OpenAI
+# from bertopic.representation import OpenAI
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -130,45 +129,26 @@ dictionary = corpora.Dictionary(texts)
 corpus_bow = [dictionary.doc2bow(text) for text in texts]
 
 texts_joined = [' '.join(text) for text in texts]
-representation_model = OpenAI(model="gpt-3.5-turbo", delay_in_seconds=10, chat=True)
-
-# topic_model = BERTopic(embedding_model=representation_model, nr_topics=9, top_n_words=10, n_gram_range=(1, 2), min_topic_size=5, verbose=True)
-# topic_model = BERTopic(embedding_model="distilbert-base-nli-mean-tokens", nr_topics=9, top_n_words=10, n_gram_range=(1, 2), min_topic_size=5, verbose=True)
-topic_model = BERTopic(calculate_probabilities=True, embedding_model="distilbert-base-nli-mean-tokens", nr_topics=9, top_n_words=10, n_gram_range=(2, 3), min_topic_size=5, verbose=True)
-
-# topic_model = BERTopic(n_gram_range=(2, 3))
-
-# Fit to your data
-topics, probabilities = topic_model.fit_transform(texts_joined)
-
-# Use the "c-TF-IDF" strategy with a threshold
-# new_topics = topic_model.reduce_outliers(texts_joined, topics , strategy="c-tf-idf", threshold=0.1)
-
-# Reduce all outliers that are left with the "distributions" strategy
-new_topics = topic_model.reduce_outliers(texts_joined, topics, strategy="distributions")
-
-# topic_model.update_topics(texts_joined, topics=new_topics)
-
-# Reduce outliers
-# new_topics = topic_model.reduce_outliers(texts_joined, topics, strategy="embeddings")
+representation_model = OpenAI(model="gpt-3.5-turbo")
+topic_model = BERTopic(embedding_model=representation_model, nr_topics=9, low_memory=True)
 
 frequent_topics = topic_model.get_topic_freq()
 
-# # Train the LDA model
-# lda_model = models.LdaModel(corpus_bow, num_topics=8, id2word=dictionary, passes=15, alpha=ALPHA, eta=ETA, decay=DECAY)
+# Train the LDA model
+lda_model = models.LdaModel(corpus_bow, num_topics=8, id2word=dictionary, passes=15, alpha=ALPHA, eta=ETA, decay=DECAY)
 
-# lda_viz = gensimvis.prepare(lda_model, corpus_bow, dictionary)
+lda_viz = gensimvis.prepare(lda_model, corpus_bow, dictionary)
 
-# # Print the topics
-# topics = lda_model.print_topics(num_words=10)
-# for topic in topics:
-#     print(topic)
+# Print the topics
+topics = lda_model.print_topics(num_words=10)
+for topic in topics:
+    print(topic)
 
-# corpus_topics = [sorted(topics, key=lambda record: -record[1])[0] 
-#                  for topics in lda_model.get_document_topics(corpus_bow) ]
+corpus_topics = [sorted(topics, key=lambda record: -record[1])[0] 
+                 for topics in lda_model.get_document_topics(corpus_bow) ]
 
-# for project, corpus_topic in zip(list_of_transcripts.keys(), corpus_topics):
-#     print("Project ", project, " is about topic ", corpus_topic[0], " with a contribution of ", round(corpus_topic[1]*100, 2), "%")
+for project, corpus_topic in zip(list_of_transcripts.keys(), corpus_topics):
+    print("Project ", project, " is about topic ", corpus_topic[0], " with a contribution of ", round(corpus_topic[1]*100, 2), "%")
     
 # pyLDAvis.save_html(lda_viz, 'lda.html')
 

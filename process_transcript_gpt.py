@@ -152,9 +152,9 @@ def select_model():
 
 def select_option():
 	options = [
-		'Summarize Transcript in Outline Form', 
 		'Rewrite Transcript in Shorter Form', 
 		'Summarize Rewrite in Outline Form',
+		'Summarize Transcript in Outline Form', 
 		'Get token count of Transcript',
 		'Get token count of Rewrite',
 	]
@@ -195,7 +195,7 @@ def app():
 	transcripts_path = Path('transcripts')
 
 	# Get a list of all (year) subdirectories in the transcripts folder
-	year_dirs = [d for d in transcripts_path.iterdir() if d.is_dir()]
+	year_dirs = sorted([d for d in transcripts_path.iterdir() if d.is_dir()])
 
 	# Ask the user to select a year
 	selected_year_dir = select_directory(year_dirs)
